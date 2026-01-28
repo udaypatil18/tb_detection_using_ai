@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-classic bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100;
+  }
+}
+
+@layer utilities {
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-lg border border-purple-200/50;
+  }
+  
+  .glass-effect-dark {
+    @apply bg-purple-900/20 backdrop-blur-lg border border-purple-500/30;
+  }
+  
+  .gradient-border {
+    position: relative;
+    background: white;
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed, #6d28d9);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 bg-clip-text text-transparent;
+  }
+  
+  .shadow-purple {
+    box-shadow: 0 10px 40px -10px rgba(168, 85, 247, 0.3);
+  }
+  
+  .shadow-purple-lg {
+    box-shadow: 0 20px 60px -15px rgba(168, 85, 247, 0.4);
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-purple-lg;
+  }
+}

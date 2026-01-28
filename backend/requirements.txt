@@ -1,0 +1,17 @@
+Flask
+Flask-CORS
+Pillow
+numpy
+tensorflow
+opencv-python
+torch
+torchvision
+torchxrayvision
+scikit-image
+matplotlib
+transformers
+accelerate
+peft
+bitsandbytes
+huggingface_hub
+python-dotenv
