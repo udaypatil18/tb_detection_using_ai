@@ -1,5 +1,6 @@
 [
-    "benign",
-    "malignant",
+    "tuberculosis",
+    "pneumonia",
+    "other_disease",
     "normal"
 ]

@@ -137,10 +137,10 @@ const UploadSection: React.FC<UploadSectionProps & { onPredictionComplete?: (res
     >
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-classic-text mb-2">
-          Upload Bone X-ray Scan Image
+          Upload Chest X-ray Image
         </h2>
         <p className="text-classic-text-light">
-          Upload a bone imaging scan for AI-powered tumor detection
+          Upload a chest X-ray image for AI-powered Tuberculosis detection
         </p>
       </div>
 

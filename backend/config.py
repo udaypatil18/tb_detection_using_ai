@@ -1,5 +1,5 @@
 """
-Configuration file for Bone Cancer Detection API
+Configuration file for Tuberculosis Detection API
 Centralizes all configuration parameters for easy management
 """
 import os
@@ -20,10 +20,10 @@ class Config:
     # =================
     # Model file paths (checks multiple extensions automatically)
     MULTITASK_MODEL_PATHS = [
-        "models/multitask_model.keras",
-        "models/multitask_model.h5",
-        "models/bone_tumor_model.keras",
-        "models/bone_tumor_model.h5"
+        "models/tuberculosis_model.keras",
+        "models/tuberculosis_model.h5",
+        "models/multitask_tb_model.keras",
+        "models/multitask_tb_model.h5"
     ]
     
     # Model input specifications
@@ -40,16 +40,17 @@ class Config:
     # Fallback HF model id (requires network + HF auth when used)
     LLAMA_BASE_MODEL_ID = os.environ.get('LLAMA_BASE_MODEL_ID', 'meta-llama/Llama-3.2-1B-Instruct')
     # Adapter subfolder name under backend/models
-    LLAMA_ADAPTER_DIRNAME = os.environ.get('LLAMA_ADAPTER_DIRNAME', 'llama3_bone_lora_adapter')
+    LLAMA_ADAPTER_DIRNAME = os.environ.get('LLAMA_ADAPTER_DIRNAME', 'llama3_tb_lora_adapter')
     
     # =================
     # Prediction Configuration
     # =================
     # Classification labels
-    MULTICLASS_LABELS = ["benign", "malignant", "normal"]
+    MULTICLASS_LABELS = ["tuberculosis", "pneumonia", "other_disease", "normal"]
     PATHOLOGY_LABELS = [
-        "fracture", "lesion", "mass", "osteolysis", 
-        "sclerosis", "soft_tissue", "joint_space", "alignment"
+        "Infiltration", "Effusion", "Atelactasis", "Nodule", 
+        "Mass", "Pneumothorax", "Consolidation", "Pleural_Thickening",
+        "Cardiomegaly", "Emphysema", "Edema", "Fibrosis", "Pneumonia", "Tuberculosis"
     ]
     
     # Prediction thresholds

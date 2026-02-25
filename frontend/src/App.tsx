@@ -12,16 +12,12 @@ function App() {
     switch (view) {
       case 'prediction':
         return (
-          <PredictionApp 
-            onBackToHome={() => setView('landing')} 
-          />
+          <PredictionApp onBackToHome={() => setView('landing')} />
         );
       case 'landing':
       default:
         return (
-          <LandingPage 
-            onStartPrediction={() => setView('prediction')}
-          />
+          <LandingPage onStartPrediction={() => setView('prediction')} />
         );
     }
   };

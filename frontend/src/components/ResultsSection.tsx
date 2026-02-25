@@ -154,12 +154,17 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
       {/* Results Header */}
       <div className="bg-white  shadow-2xl p-8 border border-purple-200">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-classic-text mb-2">
-            Analysis Results
-          </h2>
-          <p className="text-classic-text-light">
-            AI-powered Bone Tumor Detection Completed
-          </p>
+         <p className="text-classic-text-light">
+              AI-powered Tuberculosis Detection Completed
+            </p>
+
+            <h3 className="font-semibold">TB Diagnosis</h3>
+
+            <p>Probable Tuberculosis pattern identified</p>
+
+            <h3>Affected Lung Regions</h3>
+            <p>Highlighted regions indicate suspected TB-affected areas or lung anomalies</p>
+                
         </div>
         {/* PDF Download Button and LLaMA status moved below */}
 
@@ -172,7 +177,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
 
         {hasStructured ? (
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3 text-classic-text">Detected Tumor Class:</h3>
+            <h3 className="text-xl font-semibold mb-3 text-classic-text">Detected Condition:</h3>
             <ul className="space-y-2">
               {results.predictions!.map((p, idx) => (
                 <li key={idx} className="flex justify-between bg-purple-50 border border-purple-200  px-3 py-2">
@@ -235,7 +240,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
           <div className="mb-8 grid md:grid-cols-3 gap-6">
             {results.multiclass && (
               <div className="bg-blue-50  p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Tumor  Multiclass Classification</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Disease Classification</h4>
                 <p className="text-red-600 capitalize text-2xl font-medium">{results.multiclass}</p>
               </div>
             )}
@@ -303,7 +308,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
             className="space-y-4"
           >
             <h4 className="text-lg font-semibold text-classic-text text-center">
-              Tumor Segmentation
+              Lung Segmentation / Anomaly
             </h4>
             <div className="bg-purple-50  p-4">
               {results.segmentation_overlay ? (

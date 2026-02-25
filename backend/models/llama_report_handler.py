@@ -18,7 +18,7 @@ _model = None
 # Force model + adapter to load from the same directory as this file
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_MODEL_PATH = os.path.join(_THIS_DIR, "llama3_base_model")
-ADAPTER_PATH   = os.path.join(_THIS_DIR, "llama3_bone_lora_adapter")
+ADAPTER_PATH   = os.path.join(_THIS_DIR, "llama3_tb_lora_adapter")
 
 # Ensure deps
 _pkgs = ["transformers", "accelerate", "peft", "bitsandbytes", "huggingface_hub"]
@@ -127,31 +127,30 @@ def last_error() -> Optional[str]:
 
 # ========== Prompting & Report ==========
 
-TUMOR_CLASSES = [
-    "osteochondroma", "multiple osteochondromas", "simple bone cyst",
-    "giant cell tumor", "osteofibroma", "synovial osteochondroma",
-    "other bt", "osteosarcoma", "other mt"
+DISEASE_CLASSES = [
+    "primary_tuberculosis", "secondary_tuberculosis", "miliary_tuberculosis",
+    "tuberculoma", "other_tb"
 ]
 
 
-def extract_tumor_and_locations(top_labels: List[str]) -> Tuple[Optional[str], List[str]]:
-    tumor_type, locs = None, []
+def extract_disease_and_locations(top_labels: List[str]) -> Tuple[Optional[str], List[str]]:
+    disease_type, locs = None, []
     for lbl in (top_labels or []):
-        if lbl and lbl.lower() in TUMOR_CLASSES:
-            tumor_type = lbl
+        if lbl and lbl.lower() in DISEASE_CLASSES:
+            disease_type = lbl
         elif lbl:
             locs.append(lbl)
-    return tumor_type, locs
+    return disease_type, locs
 
 
 def _default_template() -> str:
     return (
         "1. Key Findings\n"
-        "Tumor Type: {tumor_type} ({malignancy})\n"
+        "Diagnosis: {diagnosis} ({status})\n"
         "Confidence: {confidence}\n"
-        "Tumor Locations: {locations}\n"
+        "Affected Areas: {locations}\n"
         "Additional Observations: {observations}\n"
-        "Malignancy Status: {risk_level}\n\n"
+        "Severity Assessment: {risk_level}\n\n"
         "2. Patient-Friendly Explanation\n<Explanation>\n\n"
         "3. Recommended Treatment Plan\n<Treatment steps>"
     )
@@ -191,28 +190,27 @@ def _format_confidence(conf_value: Any) -> Tuple[float, str]:
 def _build_normal_report(conf_display: str) -> str:
     """
     Deterministic report for multiclass_label == 'normal'.
-    Absolutely no tumor locations or malignancy.
+    Absolutely no disease findings.
     """
     if not conf_display or conf_display == "Undetermined":
         conf_display = "Not available"
 
     lines = [
         "1. Key Findings",
-        "Tumor Type: None",
+        "Diagnosis: None",
         f"Confidence: {conf_display}",
-        "Tumor Locations: None",
-        "Additional Observations: No tumor or abnormal growth is detected in the evaluated bone structures.",
-        "Malignancy Status: None",
+        "Affected Areas: None",
+        "Additional Observations: No evidence of pulmonary infection or tuberculosis detected in the evaluated chest imaging.",
+        "Severity Assessment: None",
         "",
         "2. Patient-Friendly Explanation",
-        "Based on the analysis of your imaging, there is no evidence of a bone tumor or abnormal growth. "
+        "Based on the analysis of your imaging, there is no evidence of active pulmonary infection or tuberculosis. "
         "The overall appearance of the scanned region is within normal limits. "
-        "No tumor-related treatment is required at this time.",
+        "No specific treatment is required at this time.",
         "",
-        "3. Recommended Treatment Plan",
-        "1. No active tumor-specific treatment is required.",
-        "2. Continue routine clinical check-ups as advised by your doctor.",
-        "3. Seek medical review if you develop new pain, swelling, or other concerning symptoms."
+        "3. Recommended Follow-Up",
+        "1. Continue routine clinical check-ups as advised by your doctor.",
+        "2. Seek medical review if you develop new respiratory symptoms such as persistent cough or fever."
     ]
     return "\n".join(lines)
 

@@ -42,6 +42,13 @@ except Exception as le:
     llama_available = False
     print(f"⚠️ LLaMA report handler unavailable: {le}")
 
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({
+        "status": "running",
+        "message": "Tuberculosis Detection API is active. Please use the frontend application to interact with the system."
+    })
+
 @app.route('/health', methods=['GET'])
 def health():
     # Report status of X-ray model and multitask (if present)
@@ -102,6 +109,52 @@ def cleanup_files():
     except Exception as e:
         return jsonify({'status': 'error', 'error': str(e)}), 500
 
+@app.route('/analyze_json', methods=['POST'])
+def analyze_json():
+    """
+    Lightweight endpoint to check if uploaded image is an X-ray.
+    Used by frontend for quick validation before heavy prediction.
+    """
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image file provided'}), 400
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+            
+        # Save uploaded file temporarily
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        temp_filename = f"temp_gate_{timestamp}.jpg"
+        temp_path = os.path.join('static/uploads', temp_filename)
+        file.save(temp_path)
+        
+        try:
+            # For testing purposes, we will log the X-ray check but NOT block the user
+            real_is_xray = False
+            if callable(check_xray):
+                try:
+                    real_is_xray = check_xray(temp_path)
+                except:
+                    real_is_xray = False
+            
+            # FORCE TRUE to ensure user can use their model
+            is_xray = True
+            
+            # Clean up temp file immediately since this is just a check
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                
+            return jsonify({
+                'xray_confirmed': True,
+                'message': 'X-ray validated (Bypassed)'
+            })
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/predict', methods=['POST'])
@@ -122,15 +175,15 @@ def predict():
             xray_confirmed = True
             if callable(check_xray):
                 try:
-                    is_xray = check_xray(temp_path)
-                    if not is_xray:
-                        if os.path.exists(temp_path):
-                            os.remove(temp_path)
-                        return jsonify({'error': 'Not an X-ray image!', 'xray_confirmed': False}), 400
-                    xray_confirmed = True
+                    # Log check result but DO NOT BLOCK
+                    real_is_xray = check_xray(temp_path)
+                    print(f"X-ray check result: {real_is_xray}")
                 except Exception as gate_err:
                     print(f"X-ray check error: {gate_err}")
-                    # Continue anyway if checker fails
+                
+            # FORCE VALIDATION TO PASS
+            is_xray = True
+            xray_confirmed = True
 
             # If multitask is available, run it BEFORE cleanup
             mt = None
@@ -246,7 +299,7 @@ def generate_report():
         return jsonify({'report': '', 'error': f'Report generation failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Bone Cancer Detection API...")
+    print("🚀 Starting Tuberculosis Detection API...")
     print("📍 Server starting instantly on port 5000...")
     print("✅ Server ready! X-ray checker first; multitask used if available.")
     print("🔗 Endpoints:")

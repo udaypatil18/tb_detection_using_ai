@@ -14,20 +14,16 @@ _model = None
 _loaded = False
 _last_error: Optional[str] = None
 
-_mc_labels: List[str] = ["benign", "malignant", "other_tumor", "normal"]
+_mc_labels: List[str] = ["tuberculosis", "pneumonia", "other_disease", "normal"]
 _pathology_labels: List[str] = []
 
-# Tumor subtypes (9 specific categories)
-TUMOR_SUBTYPES = [
-    "osteochondroma",
-    "multiple osteochondromas", 
-    "simple bone cyst",
-    "giant cell tumor",
-    "osteofibroma",
-    "synovial osteochondroma",
-    "other bt",
-    "osteosarcoma",
-    "other mt"
+# Disease subtypes (tuberculosis-related categories)
+DISEASE_SUBTYPES = [
+    "primary_tuberculosis",
+    "secondary_tuberculosis",
+    "miliary_tuberculosis",
+    "tuberculoma",
+    "other_tb"
 ]
 
 
@@ -51,10 +47,11 @@ def _find_model_path() -> Optional[str]:
     
     # Fallback to single file formats
     candidates = [
-        os.path.join(_models_dir(), 'multitask_bonetumor_savedmodel.keras'),
-        os.path.join(_models_dir(), 'multitask_bonetumor_model.keras'),
-        os.path.join(_models_dir(), 'multitask_model_keras.keras'),
-        os.path.join(_models_dir(), 'multitask_model_keras.h5'),
+        os.path.join(_models_dir(), 'tuberculosis_model.keras'),
+        os.path.join(_models_dir(), 'tuberculosis_model.h5'),
+        os.path.join(_models_dir(), 'multitask_tb_model.keras'),
+        os.path.join(_models_dir(), 'multitask_tb_model.h5'),
+        os.path.join(_models_dir(), 'multitask_tb_savedmodel.keras'),
         os.path.join(_models_dir(), 'best_multitask_tf.keras'),
     ]
     for p in candidates:
@@ -211,6 +208,9 @@ def _predict(batch: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         preds = _model.predict(batch, verbose=0)
         if isinstance(preds, (list, tuple)) and len(preds) >= 3:
             mc, path, seg = preds[0], preds[1], preds[2]
+            print(f"[DEBUG] Raw Multiclass Prediction: {mc}")
+            print(f"[DEBUG] Raw Pathology Prediction: {path}")
+            print(f"[DEBUG] Raw Segmentation Stats: min={np.min(seg)}, max={np.max(seg)}, mean={np.mean(seg)}")
         else:
             raise RuntimeError('Unexpected model outputs')
         return mc, path, seg
@@ -248,39 +248,39 @@ def analyze_to_view(image: Union[str, Any]) -> Dict[str, Any]:
     path_pairs: List[Tuple[str, float]] = []
     path_scores: List[Dict[str, float]] = []
     
-    # Tumor subtype analysis (only for benign/malignant with segmentation)
-    tumor_subtype = None
-    tumor_subtype_confidence = None
+    # Disease subtype analysis (only for tuberculosis/pneumonia with segmentation)
+    disease_subtype = None
+    disease_subtype_confidence = None
     has_segmentation = seg_p is not None and seg_p.size > 0 and np.any(seg_p[0] >= 0.5)
-    is_tumor = mc_label in ["benign", "malignant"]
+    is_tb = mc_label in ["tuberculosis"]
     
     if path_p is not None and path_p.size > 0:
         pv = path_p[0]
         
-        # Separate tumor subtypes from pathology characteristics
-        tumor_scores = []
+        # Separate disease subtypes from pathology characteristics
+        disease_scores = []
         pathology_scores_filtered = []
         
         for i, p in enumerate(pv):
             name = _pathology_labels[i] if i < len(_pathology_labels) else f'pathology_{i}'
             confidence = float(p)
             
-            if name in TUMOR_SUBTYPES:
-                # This is a tumor subtype
-                tumor_scores.append((name, confidence))
+            if name in DISEASE_SUBTYPES:
+                # This is a disease subtype
+                disease_scores.append((name, confidence))
             else:
                 # This is a pathology characteristic (location)
                 pathology_scores_filtered.append({ 'name': name, 'prob': confidence })
                 if confidence > 0.5:
                     path_pairs.append((name, confidence))
         
-        # Find highest confidence tumor subtype if conditions are met
-        if is_tumor and has_segmentation and tumor_scores:
-            tumor_scores.sort(key=lambda x: x[1], reverse=True)
-            tumor_subtype = tumor_scores[0][0]
-            tumor_subtype_confidence = tumor_scores[0][1]
+        # Find highest confidence disease subtype if conditions are met
+        if is_tb and has_segmentation and disease_scores:
+            disease_scores.sort(key=lambda x: x[1], reverse=True)
+            disease_subtype = disease_scores[0][0]
+            disease_subtype_confidence = disease_scores[0][1]
         
-        # Use filtered pathology scores (excluding tumor subtypes)
+        # Use filtered pathology scores (excluding disease subtypes)
         path_scores = pathology_scores_filtered
         path_pairs.sort(key=lambda x: x[1], reverse=True)
         path_pairs = path_pairs[:5]
@@ -362,8 +362,8 @@ def analyze_to_view(image: Union[str, Any]) -> Dict[str, Any]:
         'predictions': pred_list,
         'pathologies': path_pairs,  # list of (name, prob>0.1) - location characteristics only
         'pathology_scores': path_scores,  # all pathology scores - location characteristics only
-        'tumor_subtype': tumor_subtype,  # highest confidence tumor subtype if conditions met
-        'tumor_subtype_confidence': tumor_subtype_confidence,
+        'disease_subtype': disease_subtype,  # highest confidence disease subtype if conditions met
+        'disease_subtype_confidence': disease_subtype_confidence,
         'segmentation_url': _to_data_url(seg_bgr),
         'gradcam_url': _to_data_url(grad_bgr),
         'segmentation_filename': seg_filename,
